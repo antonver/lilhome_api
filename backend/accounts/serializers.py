@@ -24,9 +24,9 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    creator = serializers.PrimaryKeyRelatedField(read_only=True)
     participants = UserProfileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ['id', 'title', 'description', 'location', 'date', 'time', 'created_by', 'participants']
+        fields = ['id', 'title', 'description', 'location', 'date', 'time', 'creator', 'participants']

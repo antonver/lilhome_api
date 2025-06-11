@@ -20,6 +20,7 @@ const EventList = () => {
   }, []);
 
   const handleJoin = async (id) => {
+    console.log(id)
     try {
       await joinEvent(id);
       setEvents(events.map(event =>

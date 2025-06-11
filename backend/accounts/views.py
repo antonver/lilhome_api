@@ -89,7 +89,7 @@ class EventListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(creator=self.request.user)
 
 
 class JoinEventView(APIView):

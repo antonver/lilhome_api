@@ -9,9 +9,10 @@ from textblob import TextBlob
 import os
 
 def analyze_sentiment(text):
+    if not text:  # Handle None or empty string
+        return "neutral"
     blob = TextBlob(text)
     sentiment = blob.sentiment.polarity
-    # Устанавливаем пороги для положительного и отрицательного настроения
     if sentiment > 0.1:
         return "positive"
     elif sentiment < -0.1:
@@ -30,33 +31,31 @@ class ChatBotView(APIView):
         if not message_text and not file:
             return Response({"error": "Message or file is required"}, status=400)
 
-        # Анализируем настроение
-        sentiment = analyze_sentiment(message_text)
+        # Analyze sentiment only if message_text exists
+        sentiment = analyze_sentiment(message_text) if message_text else "neutral"
 
-        # Получаем или создаем разговор для пользователя
+        # Get or create conversation
         conversation, created = Conversation.objects.get_or_create(user=user)
 
-        # Логика отправки сообщения в OpenAI
-        response_text = ask_openai(message_text, conversation)
+        # Call OpenAI (adjust if OpenAI handles files differently)
+        response_text = ask_openai(message_text or "", conversation)
 
-        # Сохраняем файл, если он есть
+        # Save file if present
         file_name = None
         if file:
-            # Сохраняем файл в нужную директорию
             file_name = os.path.join('chat_files', file.name)
-            # сохраняем файл в Media директории
             with open(os.path.join('media', file_name), 'wb') as f:
                 for chunk in file.chunks():
                     f.write(chunk)
 
-        # Сохраняем в БД
+        # Save message
         chat = ChatMessage.objects.create(
             user=user,
             conversation=conversation,
-            message=message_text,
+            message=message_text or "",  # Use empty string if None
             response=response_text,
-            file=file_name if file else None,    
-            sentiment=sentiment  # Добавляем настроение
+            file=file_name,
+            sentiment=sentiment
         )
 
         serializer = ChatMessageSerializer(chat)

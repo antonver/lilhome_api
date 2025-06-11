@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, List, ListItem, ListItemText } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  FormControl,
+  InputLabel,
+  Select, MenuItem
+} from '@mui/material';
 import { searchUsers } from '../../api/user';
 
 const UserSearch = () => {
@@ -29,21 +40,41 @@ const UserSearch = () => {
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
       <Typography variant="h5" gutterBottom>User Search</Typography>
-      <Box component="form" onSubmit={handleSubmit}>
-        {Object.keys(filters).map((key) => (
-          <TextField
-            key={key}
-            label={key.replace('_', ' ').toUpperCase()}
-            name={key}
-            fullWidth
-            margin="normal"
-            onChange={handleChange}
-          />
-        ))}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          Search
-        </Button>
-      </Box>
+<Box component="form" onSubmit={handleSubmit}>
+  {Object.keys(filters).map((key) => {
+    if (key === 'gender') return null;
+    return (
+      <TextField
+        key={key}
+        label={key.replace('_', ' ').toUpperCase()}
+        name={key}
+        value={filters[key]}
+        fullWidth
+        margin="normal"
+        onChange={handleChange}
+      />
+    );
+  })}
+  <FormControl fullWidth margin="normal">
+    <InputLabel id="gender-label">Gender</InputLabel>
+    <Select
+      labelId="gender-label"
+      id="gender"
+      name="gender"
+      value={filters.gender}
+      label="Gender"
+      onChange={handleChange}
+    >
+      <MenuItem value="male">Male</MenuItem>
+      <MenuItem value="female">Female</MenuItem>
+      <MenuItem value="other">Other</MenuItem>
+    </Select>
+  </FormControl>
+  <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+    Search
+  </Button>
+</Box>
+
       <List sx={{ mt: 4 }}>
         {results.map((user) => (
           <ListItem key={user.id}>

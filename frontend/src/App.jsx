@@ -12,6 +12,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import EventDetails from './components/Event/EventDetails';
 import ProtectedRoute from './components/ProtectedRoute';
+import ChatPage from "./pages/ChatPage";
 
 const App = () => {
   return (
@@ -55,6 +56,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+              <Route path="/chat" element={<ChatPage />} />
           </Routes>
         </Router>
       </AuthProvider>

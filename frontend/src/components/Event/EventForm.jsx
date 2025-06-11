@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Alert } from '@mui/material';
-import { createEvent } from '../../api/event';
+// src/components/EventForm.jsx
+import React, { useState, useContext } from 'react';
+import { TextField, Button, Box, Typography, Alert, Snackbar, CircularProgress } from '@mui/material';
+import {createEvent} from "../../api/event";
+import {AuthContext} from "../../contexts/AuthContext";
+
 
 const EventForm = () => {
+  const { isAuthenticated } = useContext(AuthContext);// Debug
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -11,39 +15,55 @@ const EventForm = () => {
     time: '',
   });
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(null); // Clear errors on change
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.title || !formData.date || !formData.time || !formData.location) {
+      setError('Please fill out all required fields');
+      return;
+    }
+
+    if (!isAuthenticated ) {
+      console.log('Auth check failed:', { isAuthenticated }); // Debug
+      setError('You must be logged in to create an event');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const combinedDateTime = formData.date && formData.time
-        ? `${formData.date}T${formData.time}:00Z`
-        : null;
       const payload = {
         title: formData.title,
         description: formData.description,
         location: formData.location,
-        date: combinedDateTime,
+        date: `${formData.date}T${formData.time}:00Z`,
+        time: formData.time,
       };
-      console.log('Event payload:', payload);
+      console.log('Payload:', payload); // Debug
       await createEvent(payload);
-      alert('Event created successfully!');
+      setFormData({ title: '', description: '', location: '', date: '', time: '' });
+      setSuccess(true);
     } catch (error) {
       console.error('Event creation failed:', error.response?.data || error);
       setError(error.response?.data || { detail: 'Failed to create event' });
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
       <Typography variant="h5" gutterBottom>Create Event</Typography>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {Object.entries(error).map(([key, value]) => (
+          {typeof error === 'string' ? error : Object.entries(error).map(([key, value]) => (
             <div key={key}>{`${key}: ${value}`}</div>
           ))}
         </Alert>
@@ -52,7 +72,9 @@ const EventForm = () => {
         label="Title"
         name="title"
         fullWidth
+        required
         margin="normal"
+        value={formData.title}
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
       />
@@ -61,6 +83,7 @@ const EventForm = () => {
         name="description"
         fullWidth
         margin="normal"
+        value={formData.description}
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
       />
@@ -68,7 +91,9 @@ const EventForm = () => {
         label="Location"
         name="location"
         fullWidth
+        required
         margin="normal"
+        value={formData.location}
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
       />
@@ -77,7 +102,9 @@ const EventForm = () => {
         name="date"
         type="date"
         fullWidth
+        required
         margin="normal"
+        value={formData.date}
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
       />
@@ -86,13 +113,26 @@ const EventForm = () => {
         name="time"
         type="time"
         fullWidth
+        required
         margin="normal"
+        value={formData.time}
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
       />
-      <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-        Create Event
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        sx={{ mt: 2 }}
+      >
+        {loading ? <CircularProgress size={24} /> : 'Create Event'}
       </Button>
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+        message="Event created successfully!"
+      />
     </Box>
   );
 };
